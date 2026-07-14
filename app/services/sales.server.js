@@ -17,7 +17,7 @@ export async function createSale(data) {
       scheduledAt: status === "Scheduled" ? new Date() : null,
       items: {
         create: data.items.map(item => ({
-          productId: item.id || item.productId,
+          productId: item.productId,
           variantId: item.variantId,
           productTitle: item.title,
           sku: item.sku,
@@ -48,7 +48,7 @@ export async function updateSale(id, data) {
       scheduledAt: status === "Scheduled" ? new Date() : null,
       items: {
         create: data.items.map(item => ({
-          productId: item.id || item.productId,
+          productId: item.productId,
           variantId: item.variantId,
           productTitle: item.title,
           sku: item.sku,

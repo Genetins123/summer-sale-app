@@ -25,9 +25,10 @@ export async function searchProducts(admin, { query, cursor, direction = 'next',
             url
             altText
           }
-          variants(first: 1) {
+          variants(first: 100) {
             nodes {
               id
+              title
               sku
               price
             }

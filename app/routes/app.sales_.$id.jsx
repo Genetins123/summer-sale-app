@@ -76,7 +76,7 @@ export default function EditSalePage() {
   };
 
   const mappedProducts = sale.items.map(item => ({
-    id: item.productId,
+    id: item.variantId || item.id,
     productId: item.productId,
     variantId: item.variantId,
     title: item.productTitle,
