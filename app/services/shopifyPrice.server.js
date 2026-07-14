@@ -9,11 +9,11 @@ export async function getOfflineGraphqlClient(shop) {
   }
 }
 
-export async function applyVariantPrice(admin, variantId, newPrice) {
+export async function applyVariantPrice(admin, productId, variantId, newPrice) {
   const mutation = `
-    mutation productVariantUpdate($input: ProductVariantInput!) {
-      productVariantUpdate(input: $input) {
-        productVariant {
+    mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+        productVariants {
           id
           price
         }
@@ -27,22 +27,29 @@ export async function applyVariantPrice(admin, variantId, newPrice) {
 
   const response = await admin.graphql(mutation, {
     variables: {
-      input: {
-        id: variantId,
-        price: newPrice.toString()
-      }
+      productId: productId,
+      variants: [
+        {
+          id: variantId,
+          price: newPrice.toString()
+        }
+      ]
     }
   });
 
   const responseJson = await response.json();
 
-  if (responseJson.data?.productVariantUpdate?.userErrors?.length > 0) {
-    throw new Error(responseJson.data.productVariantUpdate.userErrors.map(e => e.message).join(", "));
+  if (responseJson.errors) {
+    throw new Error(responseJson.errors.map(e => e.message).join(", "));
+  }
+
+  if (responseJson.data?.productVariantsBulkUpdate?.userErrors?.length > 0) {
+    throw new Error(responseJson.data.productVariantsBulkUpdate.userErrors.map(e => e.message).join(", "));
   }
 
   return true;
 }
 
-export async function restoreVariantPrice(client, variantId, originalPrice) {
-  return applyVariantPrice(client, variantId, originalPrice);
+export async function restoreVariantPrice(admin, productId, variantId, originalPrice) {
+  return applyVariantPrice(admin, productId, variantId, originalPrice);
 }

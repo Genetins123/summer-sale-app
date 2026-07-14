@@ -31,28 +31,36 @@ async function processScheduledSales() {
       let successCount = 0;
 
       for (const item of sale.items) {
-        if (!item.variantId) continue;
+        if (!item.variantId || !item.productId) continue;
         
         try {
-          await applyVariantPrice(client, item.variantId, item.salePrice);
+          await applyVariantPrice(client, item.productId, item.variantId, item.salePrice);
           await prisma.saleItem.update({
             where: { id: item.id },
             data: { appliedAt: new Date() }
           });
           successCount++;
         } catch (itemError) {
-          console.error(`Failed to apply sale price for variant ${item.variantId}:`, itemError);
+          console.error(`Failed to apply sale price for variant ${item.variantId}:`, itemError.message || itemError);
         }
       }
 
-      await prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: "Running" }
-      });
-      console.log(`Sale ${sale.name} is now RUNNING. Applied prices to ${successCount} items.`);
+      if (successCount > 0 || sale.items.length === 0) {
+        await prisma.sale.update({
+          where: { id: sale.id },
+          data: { status: "Running" }
+        });
+        console.log(`Sale ${sale.name} is now RUNNING. Applied prices to ${successCount} items.`);
+      } else {
+        await prisma.sale.update({
+          where: { id: sale.id },
+          data: { status: "Failed" }
+        });
+        console.log(`Sale ${sale.name} FAILED to start. Applied prices to 0 items.`);
+      }
 
     } catch (saleError) {
-      console.error(`Failed to start sale ${sale.name}:`, saleError);
+      console.error(`Failed to start sale ${sale.name}:`, saleError.message || saleError);
       await prisma.sale.update({
         where: { id: sale.id },
         data: { status: "Failed" }
@@ -79,28 +87,36 @@ async function processRunningSales() {
       let successCount = 0;
 
       for (const item of sale.items) {
-        if (!item.variantId) continue;
+        if (!item.variantId || !item.productId) continue;
         
         try {
-          await restoreVariantPrice(client, item.variantId, item.originalPrice);
+          await restoreVariantPrice(client, item.productId, item.variantId, item.originalPrice);
           await prisma.saleItem.update({
             where: { id: item.id },
             data: { restoredAt: new Date() }
           });
           successCount++;
         } catch (itemError) {
-          console.error(`Failed to restore price for variant ${item.variantId}:`, itemError);
+          console.error(`Failed to restore price for variant ${item.variantId}:`, itemError.message || itemError);
         }
       }
 
-      await prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: "Completed" }
-      });
-      console.log(`Sale ${sale.name} is now COMPLETED. Restored prices for ${successCount} items.`);
+      if (successCount > 0 || sale.items.length === 0) {
+        await prisma.sale.update({
+          where: { id: sale.id },
+          data: { status: "Completed" }
+        });
+        console.log(`Sale ${sale.name} is now COMPLETED. Restored prices for ${successCount} items.`);
+      } else {
+        await prisma.sale.update({
+          where: { id: sale.id },
+          data: { status: "Failed" }
+        });
+        console.log(`Sale ${sale.name} FAILED to end properly. Restored prices for 0 items.`);
+      }
 
     } catch (saleError) {
-      console.error(`Failed to end sale ${sale.name}:`, saleError);
+      console.error(`Failed to end sale ${sale.name}:`, saleError.message || saleError);
       await prisma.sale.update({
         where: { id: sale.id },
         data: { status: "Failed" }
