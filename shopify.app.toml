@@ -2,7 +2,7 @@
 
 client_id = "959b0ea9c88077d3e32277e9fbe798ea"
 name = "summer-sale-app"
-application_url = "https://YOUR_RENDER_URL.onrender.com"
+application_url = "https://summer-sale-app.onrender.com"
 embedded = true
 
 [build]
@@ -25,7 +25,7 @@ api_version = "2026-10"
 scopes = "write_metaobject_definitions,write_metaobjects,write_products"
 
 [auth]
-redirect_urls = [ "https://YOUR_RENDER_URL.onrender.com/api/auth" ]
+redirect_urls = [ "https://summer-sale-app.onrender.com/api/auth" ]
 
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
