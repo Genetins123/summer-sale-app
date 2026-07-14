@@ -1,18 +1,15 @@
 import shopify from "../shopify.server";
 
 export async function getOfflineGraphqlClient(shop) {
-  const sessionId = shopify.api.session.getOfflineId(shop);
-  const session = await shopify.config.sessionStorage.loadSession(sessionId);
-  
-  if (!session) {
-    throw new Error(`No offline session found for shop: ${shop}`);
+  try {
+    const { admin } = await shopify.unauthenticated.admin(shop);
+    return admin;
+  } catch (error) {
+    throw new Error(`Failed to load offline session for shop: ${shop}. Error: ${error.message}`);
   }
-
-  const client = new shopify.api.clients.Graphql({ session });
-  return client;
 }
 
-export async function applyVariantPrice(client, variantId, newPrice) {
+export async function applyVariantPrice(admin, variantId, newPrice) {
   const mutation = `
     mutation productVariantUpdate($input: ProductVariantInput!) {
       productVariantUpdate(input: $input) {
@@ -28,7 +25,7 @@ export async function applyVariantPrice(client, variantId, newPrice) {
     }
   `;
 
-  const response = await client.request(mutation, {
+  const response = await admin.graphql(mutation, {
     variables: {
       input: {
         id: variantId,
@@ -37,8 +34,10 @@ export async function applyVariantPrice(client, variantId, newPrice) {
     }
   });
 
-  if (response.data?.productVariantUpdate?.userErrors?.length > 0) {
-    throw new Error(response.data.productVariantUpdate.userErrors.map(e => e.message).join(", "));
+  const responseJson = await response.json();
+
+  if (responseJson.data?.productVariantUpdate?.userErrors?.length > 0) {
+    throw new Error(responseJson.data.productVariantUpdate.userErrors.map(e => e.message).join(", "));
   }
 
   return true;
