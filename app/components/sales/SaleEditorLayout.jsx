@@ -56,6 +56,21 @@ export function SaleEditorLayout({
   const [endAt, setEndAt] = useState(initialEndAt ? utcToUKTime(initialEndAt) : "");
   const [selectedProducts, setSelectedProducts] = useState(initialProducts || []);
   const [queryValue, setQueryValue] = useState(searchQuery || "");
+  const [currentUKTime, setCurrentUKTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const timeStr = new Date().toLocaleString('en-GB', { 
+        timeZone: 'Europe/London', 
+        dateStyle: 'medium', 
+        timeStyle: 'short' 
+      });
+      setCurrentUKTime(timeStr);
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => { setQueryValue(searchQuery || ""); }, [searchQuery]);
 
@@ -202,6 +217,9 @@ export function SaleEditorLayout({
                 />
               </div>
             </div>
+            <s-text tone="subdued">
+              <strong style={{ color: '#005bd3' }}>Current UK Time: {currentUKTime}</strong>
+            </s-text>
             {(startAt || endAt) && (
               <s-text tone="subdued">Note: This sale will automatically start and end at the selected times (UK Time).</s-text>
             )}
