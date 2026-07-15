@@ -45,8 +45,8 @@ export function SalesLayout({ sales, initialQuery }) {
             <tr style={{ background: '#f4f6f8' }}>
               <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>Sale Name</th>
               <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>Products Count</th>
-              <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>Start Date</th>
-              <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>End Date</th>
+              <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>Start Date (UK)</th>
+              <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>End Date (UK)</th>
               <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>Status</th>
               <th style={{ padding: '12px 8px', borderBottom: '1px solid #ccc' }}>Actions</th>
             </tr>
@@ -57,10 +57,10 @@ export function SalesLayout({ sales, initialQuery }) {
                 <td style={{ padding: '12px 8px' }}><s-text>{sale.name}</s-text></td>
                 <td style={{ padding: '12px 8px' }}><s-text>{sale._count.items}</s-text></td>
                 <td style={{ padding: '12px 8px' }}>
-                  <s-text>{sale.startAt ? new Date(sale.startAt).toLocaleString() : "-"}</s-text>
+                  <s-text>{sale.startAt ? new Date(sale.startAt).toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'medium', timeStyle: 'short' }) : "-"}</s-text>
                 </td>
                 <td style={{ padding: '12px 8px' }}>
-                  <s-text>{sale.endAt ? new Date(sale.endAt).toLocaleString() : "-"}</s-text>
+                  <s-text>{sale.endAt ? new Date(sale.endAt).toLocaleString('en-GB', { timeZone: 'Europe/London', dateStyle: 'medium', timeStyle: 'short' }) : "-"}</s-text>
                 </td>
                 <td style={{ padding: '12px 8px' }}>
                   <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', background: sale.status === 'Running' ? '#aee9d1' : '#e3e5e7' }}>

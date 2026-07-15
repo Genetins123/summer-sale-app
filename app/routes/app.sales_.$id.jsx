@@ -88,8 +88,8 @@ export default function EditSalePage() {
   }));
 
   const isEditable = sale.status === "Draft" || sale.status === "Scheduled";
-  const formattedStart = sale.startAt ? new Date(sale.startAt).toISOString().slice(0, 16) : "";
-  const formattedEnd = sale.endAt ? new Date(sale.endAt).toISOString().slice(0, 16) : "";
+  const formattedStart = sale.startAt ? sale.startAt : "";
+  const formattedEnd = sale.endAt ? sale.endAt : "";
 
   return (
     <SaleEditorLayout 

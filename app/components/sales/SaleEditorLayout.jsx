@@ -3,6 +3,36 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { useSubmit, useNavigation } from "react-router";
 import { SaleBuilder } from "./SaleBuilder";
 
+const ukTimeToUTC = (ukDateString) => {
+  if (!ukDateString) return null;
+  const [datePart, timePart] = ukDateString.split('T');
+  const [year, month, day] = datePart.split('-');
+  const [hour, minute] = timePart.split(':');
+  
+  const targetTimeUTC = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  const londonStr = targetTimeUTC.toLocaleString('en-US', { timeZone: 'Europe/London' });
+  const londonTimeAsUTC = new Date(londonStr + ' UTC');
+  const offset = londonTimeAsUTC.getTime() - targetTimeUTC.getTime();
+  
+  return new Date(targetTimeUTC.getTime() - offset).toISOString();
+};
+
+const utcToUKTime = (utcDateString) => {
+  if (!utcDateString) return "";
+  const d = new Date(utcDateString);
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+    hour12: false
+  }).formatToParts(d);
+  
+  const p = {};
+  parts.forEach(part => p[part.type] = part.value);
+  const h = p.hour === '24' ? '00' : p.hour;
+  return `${p.year}-${p.month}-${p.day}T${h}:${p.minute}`;
+};
+
 export function SaleEditorLayout({ 
   initialSaleName, 
   initialProducts, 
@@ -22,8 +52,8 @@ export function SaleEditorLayout({
   const isSaving = navigation.state === "submitting" && navigation.formData?.get("intent") === "save";
 
   const [saleName, setSaleName] = useState(initialSaleName || "");
-  const [startAt, setStartAt] = useState(initialStartAt || "");
-  const [endAt, setEndAt] = useState(initialEndAt || "");
+  const [startAt, setStartAt] = useState(initialStartAt ? utcToUKTime(initialStartAt) : "");
+  const [endAt, setEndAt] = useState(initialEndAt ? utcToUKTime(initialEndAt) : "");
   const [selectedProducts, setSelectedProducts] = useState(initialProducts || []);
   const [queryValue, setQueryValue] = useState(searchQuery || "");
 
@@ -109,8 +139,8 @@ export function SaleEditorLayout({
     const formData = new FormData();
     formData.append("intent", "save");
     formData.append("saleName", saleName);
-    if (startAt) formData.append("startAt", new Date(startAt).toISOString());
-    if (endAt) formData.append("endAt", new Date(endAt).toISOString());
+    if (startAt) formData.append("startAt", ukTimeToUTC(startAt));
+    if (endAt) formData.append("endAt", ukTimeToUTC(endAt));
     formData.append("products", JSON.stringify(selectedProducts));
     
     submit(formData, { method: "POST" });
@@ -152,7 +182,7 @@ export function SaleEditorLayout({
             
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                <label style={{ fontWeight: '500' }}>Start Date & Time (Optional)</label>
+                <label style={{ fontWeight: '500' }}>Start Date & Time (UK Time - Optional)</label>
                 <input 
                   type="datetime-local" 
                   value={startAt}
@@ -162,7 +192,7 @@ export function SaleEditorLayout({
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                <label style={{ fontWeight: '500' }}>End Date & Time (Optional)</label>
+                <label style={{ fontWeight: '500' }}>End Date & Time (UK Time - Optional)</label>
                 <input 
                   type="datetime-local" 
                   value={endAt}
@@ -173,7 +203,7 @@ export function SaleEditorLayout({
               </div>
             </div>
             {(startAt || endAt) && (
-              <s-text tone="subdued">Note: This sale will automatically start and end at the selected times.</s-text>
+              <s-text tone="subdued">Note: This sale will automatically start and end at the selected times (UK Time).</s-text>
             )}
           </div>
         </s-box>
